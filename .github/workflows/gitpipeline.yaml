@@ -32,16 +32,17 @@ jobs:
         run: |
           az acr login --name ${{ secrets.ACR_NAME }}
 
-      # Docker Build & Push
+      # Docker Build & Push (v2)
       - name: Build and Push Docker image
         run: |
-          IMAGE_NAME="${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v1"
+          IMAGE_NAME="${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v2"
           docker build -t $IMAGE_NAME ./vote
           docker push $IMAGE_NAME
 
       - name: Set output image
         id: setimage
-        run: echo "image=${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v1" >> $GITHUB_OUTPUT
+        run: |
+          echo "image=${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v2" >> $GITHUB_OUTPUT
 
 
   deploy_to_aks:
@@ -65,10 +66,11 @@ jobs:
             --name ${{ secrets.AKS_NAME }} \
             --overwrite-existing
 
+      # Use v2 here also
       - name: Update Kubernetes image
         run: |
           kubectl set image -n demo-ns deployment/vote \
-            vote=${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v1
+            vote=${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v2
 
       - name: Apply manifests
         run: |
