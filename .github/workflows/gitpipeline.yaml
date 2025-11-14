@@ -3,7 +3,7 @@ name: Voting App CI/CD
 on:
   push:
     branches:
-      - master
+      - votingapp
     paths:
       - "vote/**"
       - ".github/workflows/gitpipeline.yaml"
