@@ -50,11 +50,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_push_acr
 
-      - name: Force Restart Deployment
-        run: |
-          kubectl rollout restart deployment/vote -n demo-ns
-
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -76,10 +71,11 @@ jobs:
           kubectl apply -f k8s-specifications/vote-deployment.yaml
           kubectl apply -f k8s-specifications/vote-service.yaml
 
-      # Use v2 here also
       - name: Update Kubernetes image
         run: |
           kubectl set image -n demo-ns deployment/vote \
             vote=${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v2
 
-     
+      - name: Force Restart Deployment
+        run: |
+          kubectl rollout restart deployment/vote -n demo-ns
