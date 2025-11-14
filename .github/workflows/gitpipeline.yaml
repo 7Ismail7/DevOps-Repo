@@ -52,7 +52,7 @@ jobs:
 
       - name: Force Restart Deployment
         run: |
-        kubectl rollout restart deployment/vote -n demo-ns
+          kubectl rollout restart deployment/vote -n demo-ns
 
 
     steps:
