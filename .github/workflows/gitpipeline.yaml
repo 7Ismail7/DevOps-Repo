@@ -14,8 +14,10 @@ jobs:
     name: Build & Push to ACR
     runs-on: ubuntu-latest
 
+    outputs:
+      image: ${{ steps.setimage.outputs.image }}
+
     steps:
-      # Checkout source code
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -33,17 +35,13 @@ jobs:
       # Docker Build & Push
       - name: Build and Push Docker image
         run: |
-          IMAGE_NAME="${{ secrets.ACR_NAME }}.votingappacr1.azurecr.io/votingapp:v1"
+          IMAGE_NAME="${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v1"
           docker build -t $IMAGE_NAME ./vote
           docker push $IMAGE_NAME
 
-      # Send output to next job (deploy)
-      outputs:
-        image: ${{ steps.setimage.outputs.image }}
-
       - name: Set output image
         id: setimage
-        run: echo "image=${{ secrets.ACR_NAME }}.votingappacr1.azurecr.io/votingapp:v1" >> $GITHUB_OUTPUT
+        run: echo "image=${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v1" >> $GITHUB_OUTPUT
 
 
   deploy_to_aks:
@@ -52,17 +50,14 @@ jobs:
     needs: build_push_acr
 
     steps:
-      # Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Azure Login
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Get AKS credentials
       - name: Get AKS Credentials
         run: |
           az aks get-credentials \
@@ -70,17 +65,12 @@ jobs:
             --name ${{ secrets.AKS_NAME }} \
             --overwrite-existing
 
-      # Replace image in deployment file (if needed)
       - name: Update Kubernetes image
         run: |
           kubectl set image deployment/vote \
-            vote=${{ secrets.ACR_NAME }}.votingappacr1.azurecr.io/votingapp:v1
+            vote=${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v1
 
-      # Apply manifests
       - name: Apply manifests
         run: |
           kubectl apply -f k8s-specifications/vote-deployment.yaml
           kubectl apply -f k8s-specifications/vote-service.yaml
-          
-
-
