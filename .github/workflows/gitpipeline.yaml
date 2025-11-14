@@ -67,7 +67,7 @@ jobs:
 
       - name: Update Kubernetes image
         run: |
-          kubectl set image deployment/vote \
+          kubectl set image -n demo-ns deployment/vote \
             vote=${{ secrets.ACR_NAME }}.azurecr.io/votingapp:v1
 
       - name: Apply manifests
